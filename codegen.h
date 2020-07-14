@@ -15,9 +15,9 @@ Assembly gen_code(Expression* expr);
 #define POP_RBP          0x5d
 #define RET              0xc3
 #define MOV_EAX_CONST    0xb8
-#define MOV_REG_REG      0x48
-#define REG_RBP          0x89
-#define REG_RSP          0xe5
+#define MOV_RBP_RSP_1    0x48
+#define MOV_RBP_RSP_2    0x89
+#define MOV_RBP_RSP_3    0xe5
 #define MOV_RAX_CONST_1  0x48
 #define MOV_RAX_CONST_2  0xb8
 #define PUSH_RAX         0x50
@@ -30,7 +30,7 @@ Assembly gen_code(Expression* expr);
 #define ADD_RAX_RBX_2    0x01
 #define ADD_RAX_RBX_3    0xd8
 #define SUB_RAX_RBX_1    0x48
-#define SUB_RAX_RBX_2    0x28
+#define SUB_RAX_RBX_2    0x29
 #define SUB_RAX_RBX_3    0xd8
 #define IMUL_RAX_RBX_1   0x48
 #define IMUL_RAX_RBX_2   0x0f
@@ -43,8 +43,6 @@ Assembly gen_code(Expression* expr);
 #define XOR_EDX_EDX_2    0xd2
 #define CQO_1            0x48
 #define CQO_2            0x99
-
-// add  rax, rbx  =>  48 01 d8
-// sub  rax, rbx  =>  48 28 d8
-// imul rax, rbx  =>  48 0f af c3
-// idiv      rbx  =>  48 f7 fb
+#define MOV_RBX_RAX_1    0x48
+#define MOV_RBX_RAX_2    0x89
+#define MOV_RBX_RAX_3    0xc3

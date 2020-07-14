@@ -36,7 +36,6 @@ bool add_expr(Expression* expr) {
 					add(value[5]);
 					add(value[6]);
 					add(value[7]);
-					add(PUSH_RAX);
 					break;
 				default:
 					fprintf(stderr, "ERROR: Invalid literal expression type ");
@@ -49,11 +48,9 @@ bool add_expr(Expression* expr) {
 			add_expr(expr->operand);
 			switch (expr->token.kind) {
 				case MinusToken:
-					add(POP_RAX);
 					add(NEG_RAX_1);
 					add(NEG_RAX_2);
 					add(NEG_RAX_3);
-					add(PUSH_RAX);
 					break;
 				default:
 					fprintf(stderr, "ERROR: Invalid unary expression type ");
@@ -64,38 +61,35 @@ bool add_expr(Expression* expr) {
 			break;
 		case BinaryExpression:
 			if (!add_expr(expr->left)) return false;
+			add(PUSH_RAX);
 			if (!add_expr(expr->right)) return false;
-			add(POP_RBX);
+			add(MOV_RBX_RAX_1);
+			add(MOV_RBX_RAX_2);
+			add(MOV_RBX_RAX_3);
 			add(POP_RAX);
 			switch (expr->token.kind) {
 				case PlusToken:
 					add(ADD_RAX_RBX_1);
 					add(ADD_RAX_RBX_2);
 					add(ADD_RAX_RBX_3);
-					add(PUSH_RAX);
 					break;
 				case MinusToken:
 					add(SUB_RAX_RBX_1);
 					add(SUB_RAX_RBX_2);
 					add(SUB_RAX_RBX_3);
-					add(PUSH_RAX);
 					break;
 				case AsteriskToken:
 					add(IMUL_RAX_RBX_1);
 					add(IMUL_RAX_RBX_2);
 					add(IMUL_RAX_RBX_3);
 					add(IMUL_RAX_RBX_4);
-					add(PUSH_RAX);
 					break;
 				case SlashToken:
 					add(CQO_1);
 					add(CQO_2);
-					/* add(XOR_EDX_EDX_1); */
-					/* add(XOR_EDX_EDX_2); */
 					add(IDIV_RBX_1);
 					add(IDIV_RBX_2);
 					add(IDIV_RBX_3);
-					add(PUSH_RAX);
 					break;
 				default:
 					fprintf(stderr, "ERROR: Invalid binary expression type ");
@@ -119,13 +113,11 @@ Assembly gen_code(Expression* expr) {
 	code = malloc(cap * sizeof *code);
 
 	add(PUSH_RBP);
-	add(MOV_REG_REG);
-	add(REG_RBP);
-	add(REG_RSP);
+	add(MOV_RBP_RSP_1);
+	add(MOV_RBP_RSP_2);
+	add(MOV_RBP_RSP_3);
 
 	if (!add_expr(expr)) return (Assembly) {};
-
-	add(POP_RAX);
 
 	add(POP_RBP);
 	add(RET);
