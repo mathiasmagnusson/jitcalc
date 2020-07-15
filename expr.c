@@ -35,7 +35,7 @@ ParseResult _parse_expr(Tokenizer* t, u64 precedence_level) {
 			.token = token,
 		};
 	} else if (token.kind == LeftParenToken) {
-		ParseResult res = parse_expr(t, 0);
+		ParseResult res = _parse_expr(t, 0);
 		if (!res.success) return res;
 		expr = res.expr;
 		Token right_paren = next_token(t);
@@ -51,7 +51,7 @@ ParseResult _parse_expr(Tokenizer* t, u64 precedence_level) {
 			};
 		}
 	} else if (get_unary_precedende(token.kind)) {
-		ParseResult res = parse_expr(t, get_unary_precedende(token.kind));
+		ParseResult res = _parse_expr(t, get_unary_precedende(token.kind));
 		if (!res.success) return res;
 		Expression* operand = res.expr;
 		expr = malloc(sizeof *expr);
@@ -79,7 +79,7 @@ ParseResult _parse_expr(Tokenizer* t, u64 precedence_level) {
 		}
 
 		Expression* left = expr;
-		ParseResult res = parse_expr(t, prec);
+		ParseResult res = _parse_expr(t, prec);
 		if (!res.success) {
 			free_expr(left);
 			return res;
@@ -100,8 +100,8 @@ ParseResult _parse_expr(Tokenizer* t, u64 precedence_level) {
 	};
 }
 
-ParseResult parse_expr(Tokenizer* t, u64 precedence_level) {
-	ParseResult res = _parse_expr(t, precedence_level);
+ParseResult parse_expr(Tokenizer* t) {
+	ParseResult res = _parse_expr(t, 0);
 	Token eof = next_token(t);
 	if (eof.kind != EOFToken) {
 		if (res.success) free_expr(res.expr);

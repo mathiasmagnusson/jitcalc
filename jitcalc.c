@@ -76,9 +76,12 @@ int main(int argc, char** argv) {
 			fprintf(stderr, "\n");
 		}
 
-		ParseResult res = parse_expr(&tokenizer, 0);
+		ParseResult res = parse_expr(&tokenizer);
 		if (!res.success) {
-			if (res.error.expected_specific) {
+			if (res.error.token.kind == EOFToken) {
+				ptr = strlen(line) - 1;
+				continue;
+			} else if (res.error.expected_specific) {
 				fprintf(stderr, "Parse error: Expected ");
 				print_token_kind(stderr, res.error.expected);
 				fprintf(stderr,

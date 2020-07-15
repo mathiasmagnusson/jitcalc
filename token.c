@@ -108,9 +108,10 @@ start:
 			t->col = 1;
 		}
 		t->i++;
+		t->col++;
 		goto start;
 	} else {
-		fprintf(stderr, "ERROR: Invalid token %c at %ld:%ld\n",
+		fprintf(stderr, "ERROR: Invalid character %c at %ld:%ld\n",
 			t->str[t->i], t->line, t->col);
 		t->i++;
 		t->col++;

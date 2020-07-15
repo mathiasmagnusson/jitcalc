@@ -35,6 +35,6 @@ typedef struct ParseResult {
 	};
 } ParseResult;
 
-ParseResult parse_expr(Tokenizer* tokens, u64 precedence_level);
+ParseResult parse_expr(Tokenizer* tokens);
 void print_expr(FILE* file, Expression* expr, u64 indent);
 void free_expr(Expression* expr);
