@@ -17,10 +17,10 @@ void usage(char* program_name) {
 \n\
 Usage: %s [OPTIONS...]\n\
 Where OPTIONS is any of:\n\
-    -tokens              print all tokens read\n\
+    -tokens              print all tokens read (implies -no-eval and not -tree)\n\
     -tree                print the expression in tree form\n\
     -no-eval             don't evaluate the expression\n\
-    -h | -help           print this message\n\
+    -h, -help            print this message\n\
 \n\
 Return codes:\n\
     0:                   no errors\n\
@@ -28,14 +28,18 @@ Return codes:\n\
     2:                   errors parsing expression\n\
     3:                   errors generating maching code\n\
     4:                   errors evaluating expression e.g. division by zero\n\
+    -1 (255):            bug detected, please open an issue with given input\n\
 \n\
 Supported syntax:\n\
-    decimal integers,\n\
-    parenthesis,\n\
-    unary operator: -\n\
-    binary operators: + - * /\n\
+    - decimal integers\n\
+    - decimal floating point numbers\n\
+    - parenthesis\n\
+    - unary operator: -\n\
+    - binary operators: + - * /\n\
 \n\
-All calculations are done as integers\n\
+All calculations are done as 64 bit signed integers unless at least one number\n\
+is a floating point value, in which case all calculations are done as 64 bit\n\
+(double precision) floating point numbers.\n\
 \n\
 ", program_name);
 	exit(1);
@@ -75,6 +79,8 @@ int main(int argc, char** argv) {
 			while ((token = next_token(&tmp)).kind != EOFToken)
 				print_token(stderr, token);
 			fprintf(stderr, "\n");
+			ptr = 0;
+			continue;
 		}
 
 		ParseResult res = parse_expr(&tokenizer);
