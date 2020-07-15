@@ -24,7 +24,7 @@ u64 get_binary_precedende(TokenKind token_kind) {
 	}
 }
 
-Expression* parse_expr(Tokenizer* t, u64 precedence_level) {
+ParseResult _parse_expr(Tokenizer* t, u64 precedence_level) {
 	Expression* expr = NULL;
 
 	Token token = next_token(t);
@@ -35,20 +35,25 @@ Expression* parse_expr(Tokenizer* t, u64 precedence_level) {
 			.token = token,
 		};
 	} else if (token.kind == LeftParenToken) {
-		expr = parse_expr(t, 0);
-		if (!expr) return NULL;
+		ParseResult res = parse_expr(t, 0);
+		if (!res.success) return res;
+		expr = res.expr;
 		Token right_paren = next_token(t);
 		if (right_paren.kind != RightParenToken) {
-			fprintf(stderr,
-				"ERROR @%ld:%ld: expected right parenthasis, got ",
-				right_paren.line, right_paren.col
-			);
-			print_token(stderr, right_paren);
-			fprintf(stderr, "\n");
+			free_expr(expr);
+			return (ParseResult) {
+				.success = false,
+				.error = (ParseError) {
+					.token = right_paren,
+					.expected_specific = true,
+					.expected = RightParenToken,
+				},
+			};
 		}
 	} else if (get_unary_precedende(token.kind)) {
-		Expression* operand = parse_expr(t, get_unary_precedende(token.kind));
-		if (!operand) return NULL;
+		ParseResult res = parse_expr(t, get_unary_precedende(token.kind));
+		if (!res.success) return res;
+		Expression* operand = res.expr;
 		expr = malloc(sizeof *expr);
 		*expr = (Expression) {
 			.kind = UnaryExpression,
@@ -56,13 +61,13 @@ Expression* parse_expr(Tokenizer* t, u64 precedence_level) {
 			.operand = operand,
 		};
 	} else {
-		fprintf(stderr,
-			"ERROR @%ld:%ld: unexpected token ",
-			token.line, token.col
-		);
-		print_token(stderr, token);
-		fprintf(stderr, "\n");
-		return NULL;
+		return (ParseResult) {
+			.success = false,
+			.error = (ParseError) {
+				.token = token,
+				.expected_specific = false,
+			},
+		};
 	}
 
 	while (true) {
@@ -74,8 +79,12 @@ Expression* parse_expr(Tokenizer* t, u64 precedence_level) {
 		}
 
 		Expression* left = expr;
-		Expression* right = parse_expr(t, prec);
-		if (!right) return NULL;
+		ParseResult res = parse_expr(t, prec);
+		if (!res.success) {
+			free_expr(left);
+			return res;
+		}
+		Expression* right = res.expr;
 		expr = malloc(sizeof *expr);
 		*expr = (Expression) {
 			.kind = BinaryExpression,
@@ -85,7 +94,27 @@ Expression* parse_expr(Tokenizer* t, u64 precedence_level) {
 		};
 	}
 
-	return expr;
+	return (ParseResult) {
+		.success = true,
+		.expr = expr,
+	};
+}
+
+ParseResult parse_expr(Tokenizer* t, u64 precedence_level) {
+	ParseResult res = _parse_expr(t, precedence_level);
+	Token eof = next_token(t);
+	if (eof.kind != EOFToken) {
+		if (res.success) free_expr(res.expr);
+		return (ParseResult) {
+			.success = false,
+			.error = (ParseError) {
+				.token = eof,
+				.expected_specific = true,
+				.expected = EOFToken,
+			}
+		};
+	}
+	return res;
 }
 
 void print_expr(FILE* file, Expression* expr, u64 indent) {

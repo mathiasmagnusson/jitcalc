@@ -29,6 +29,7 @@ typedef struct Tokenizer {
 	u64 len;
 } Tokenizer;
 
+void print_token_kind(FILE* file, TokenKind kind);
 void print_token(FILE*, Token token);
 void putback_token(Tokenizer* t, Token token);
 Tokenizer new_tokenizer(char* str);

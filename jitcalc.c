@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <signal.h>
-#include <math.h>
 
 #include "jitcalc.h"
 #include "codegen.h"
@@ -77,11 +76,29 @@ int main(int argc, char** argv) {
 			fprintf(stderr, "\n");
 		}
 
-		Expression* expr = parse_expr(&tokenizer, 0);
-		if (!expr) {
-			fprintf(stderr, "Parse errors, exiting\n");
+		ParseResult res = parse_expr(&tokenizer, 0);
+		if (!res.success) {
+			if (res.error.expected_specific) {
+				fprintf(stderr, "Parse error: Expected ");
+				print_token_kind(stderr, res.error.expected);
+				fprintf(stderr,
+					" at %ld:%ld, got ",
+					res.error.token.line, res.error.token.col
+				);
+				print_token(stderr, res.error.token);
+				fprintf(stderr, "\n");
+			} else {
+				fprintf(stderr, "Parse error: Unexpected token ");
+				print_token(stderr, res.error.token);
+				fprintf(stderr,
+					" at %ld:%ld",
+					res.error.token.line, res.error.token.col
+				);
+				fprintf(stderr, "\n");
+			}
 			return 2;
 		}
+		Expression* expr = res.expr;
 		if (print_tree) print_expr(stdout, expr, 0);
 
 		if (do_eval) {

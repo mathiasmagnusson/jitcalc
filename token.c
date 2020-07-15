@@ -6,16 +6,26 @@
 #include "jitcalc.h"
 #include "token.h"
 
+void print_token_kind(FILE* file, TokenKind kind) {
+	switch (kind) {
+		case EOFToken:        fprintf(file, "<eof>");    break;
+		case NumberToken:     fprintf(file, "<number>"); break;
+		case LeftParenToken:  fprintf(file, "(");        break;
+		case RightParenToken: fprintf(file, ")");        break;
+		case PlusToken:       fprintf(file, "+");        break;
+		case MinusToken:      fprintf(file, "-");        break;
+		case AsteriskToken:   fprintf(file, "*");        break;
+		case SlashToken:      fprintf(file, "/");        break;
+	}
+}
+
 void print_token(FILE* file, Token token) {
 	switch (token.kind) {
-		case EOFToken:        fprintf(file, "<eof>");              break;
-		case NumberToken:     fprintf(file, "%ld", token.integer); break;
-		case LeftParenToken:  fprintf(file, "(");                  break;
-		case RightParenToken: fprintf(file, ")");                  break;
-		case PlusToken:       fprintf(file, "+");                  break;
-		case MinusToken:      fprintf(file, "-");                  break;
-		case AsteriskToken:   fprintf(file, "*");                  break;
-		case SlashToken:      fprintf(file, "/");                  break;
+		case NumberToken:
+			fprintf(file, "%ld", token.integer);
+			break;
+		default:
+			print_token_kind(file, token.kind);
 	}
 }
 
@@ -72,6 +82,9 @@ start:
 	if (isdigit(t->str[t->i])) {
 		u64 value = 0;
 
+		u64 start_col = t->col;
+		u64 start_i = t->i;
+
 		while (t->i < t->len && isdigit(t->str[t->i])) {
 			value *= 10;
 			value += t->str[t->i] - '0';
@@ -82,8 +95,8 @@ start:
 		Token token = (Token) {
 			.kind = NumberToken,
 			.line = t->line,
-			.col = t->col,
-			.i = t->i,
+			.col = start_col,
+			.i = start_i,
 
 			.integer = value,
 		};
