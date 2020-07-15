@@ -2,7 +2,7 @@
 
 typedef enum TokenKind {
 	EOFToken = 0,
-	NumberToken,
+	LiteralToken,
 	LeftParenToken = '(',
 	RightParenToken = ')',
 	PlusToken = '+',
@@ -11,13 +11,20 @@ typedef enum TokenKind {
 	SlashToken = '/',
 } TokenKind;
 
+typedef enum ValueKind {
+	IntegerValue,
+	FloatingValue,
+} ValueKind;
+
 typedef struct Token {
 	TokenKind kind;
 	u64 line;
 	u64 col;
 	u64 i;
+	ValueKind value_kind;
 	union {
 		u64 integer;
+		double floating;
 	};
 } Token;
 

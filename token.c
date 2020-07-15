@@ -9,7 +9,7 @@
 void print_token_kind(FILE* file, TokenKind kind) {
 	switch (kind) {
 		case EOFToken:        fprintf(file, "<eof>");    break;
-		case NumberToken:     fprintf(file, "<number>"); break;
+		case LiteralToken:    fprintf(file, "<number>"); break;
 		case LeftParenToken:  fprintf(file, "(");        break;
 		case RightParenToken: fprintf(file, ")");        break;
 		case PlusToken:       fprintf(file, "+");        break;
@@ -21,8 +21,11 @@ void print_token_kind(FILE* file, TokenKind kind) {
 
 void print_token(FILE* file, Token token) {
 	switch (token.kind) {
-		case NumberToken:
-			fprintf(file, "%ld", token.integer);
+		case LiteralToken:
+			switch (token.value_kind) {
+				case IntegerValue:  fprintf(file, "%ld", token.integer);  break;
+				case FloatingValue: fprintf(file, "%lg", token.floating); break;
+			}
 			break;
 		default:
 			print_token_kind(file, token.kind);
@@ -55,6 +58,7 @@ void putback_token(Tokenizer* t, Token token) {
 }
 
 Token next_token(Tokenizer* t) {
+	#define ch t->str[t->i]
 start:
 	if (t->i >= t->len) {
 		return (Token) {
@@ -65,10 +69,10 @@ start:
 		};
 	}
 
-	switch (t->str[t->i]) {
+	switch (ch) {
 		case '(': case ')': case '+': case '-': case '*': case '/': {
 			Token token = (Token) {
-				.kind = t->str[t->i],
+				.kind = ch,
 				.line = t->line,
 				.col = t->col,
 				.i = t->i,
@@ -79,31 +83,57 @@ start:
 		}
 	}
 
-	if (isdigit(t->str[t->i])) {
+	if (isdigit(ch) || ch == '.') {
 		u64 value = 0;
 
 		u64 start_col = t->col;
 		u64 start_i = t->i;
 
-		while (t->i < t->len && isdigit(t->str[t->i])) {
+		while (t->i < t->len && (isdigit(ch) || ch == '.')) {
+			if (ch == '.') {
+				char* end;
+				double value = strtod(&t->str[start_i], &end);
+				u64 chars_read = end - &t->str[start_i];
+				if (chars_read == 0) {
+					fprintf(stderr,
+						"ERROR: Invalid floating point number at %ld:%ld\n",
+						t->line, start_col);
+					t->i++;
+					t->col++;
+					goto start;
+				}
+				t->i = start_i + chars_read;
+				t->col = start_col + chars_read;
+				return (Token) {
+					.kind = LiteralToken,
+					.line = t->line,
+					.col = start_col,
+					.i = start_i,
+
+					.value_kind = FloatingValue,
+					.floating = value,
+				};
+			}
+
 			value *= 10;
-			value += t->str[t->i] - '0';
+			value += ch - '0';
 			t->i++;
 			t->col++;
 		}
 
 		Token token = (Token) {
-			.kind = NumberToken,
+			.kind = LiteralToken,
 			.line = t->line,
 			.col = start_col,
 			.i = start_i,
 
+			.value_kind = IntegerValue,
 			.integer = value,
 		};
 
 		return token;
-	} else if (isspace(t->str[t->i])) {
-		if (t->str[t->i] == '\n') {
+	} else if (isspace(ch)) {
+		if (ch == '\n') {
 			t->line++;
 			t->col = 1;
 		}
@@ -112,7 +142,7 @@ start:
 		goto start;
 	} else {
 		fprintf(stderr, "ERROR: Invalid character %c at %ld:%ld\n",
-			t->str[t->i], t->line, t->col);
+			ch, t->line, t->col);
 		t->i++;
 		t->col++;
 		goto start;

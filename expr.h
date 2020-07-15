@@ -30,7 +30,10 @@ typedef struct ParseError {
 typedef struct ParseResult {
 	bool success;
 	union {
-		Expression* expr;
+		struct {
+			Expression* expr;
+			ValueKind value_kind;
+		};
 		ParseError error;
 	};
 } ParseResult;
