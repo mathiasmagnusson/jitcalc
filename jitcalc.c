@@ -65,7 +65,8 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	while (fgets(line, sizeof(line), stdin)) {
+	u64 ptr = 0;
+	while (fgets(line + ptr, sizeof line - ptr, stdin)) {
 		Tokenizer tokenizer = new_tokenizer(line);
 
 		if (print_tokens) {
@@ -118,5 +119,7 @@ int main(int argc, char** argv) {
 			free_assembly(assembly);
 		}
 		free_expr(expr);
+
+		ptr = 0;
 	}
 }
