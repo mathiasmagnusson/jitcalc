@@ -28,7 +28,7 @@ ParseResult _parse_expr(Tokenizer* t, u64 precedence_level) {
 	Expression* expr = NULL;
 
 	Token token = next_token(t);
-	if (token.kind == NumberToken) {
+	if (token.kind == LiteralToken) {
 		expr = malloc(sizeof *expr);
 		*expr = (Expression) {
 			.kind = LiteralExpression,
@@ -100,11 +100,43 @@ ParseResult _parse_expr(Tokenizer* t, u64 precedence_level) {
 	};
 }
 
+bool has_floating(Expression* expr) {
+	switch (expr->kind) {
+		case LiteralExpression: return expr->token.value_kind == FloatingValue;
+		case UnaryExpression:   return has_floating(expr->operand);
+		case BinaryExpression:  return has_floating(expr->left) ||
+		                               has_floating(expr->right);
+	}
+	// Unreachable code
+	exit(-1);
+}
+
+void convert_to_floating(Expression* expr) {
+	switch (expr->kind) {
+		case LiteralExpression:
+			if (expr->token.value_kind == IntegerValue) {
+				u64 value = expr->token.integer;
+				double float_value = (double) value;
+				expr->token.floating = float_value;
+				expr->token.value_kind = FloatingValue;
+			}
+			break;
+		case UnaryExpression:
+			convert_to_floating(expr->operand);
+			break;
+		case BinaryExpression:
+			convert_to_floating(expr->left);
+			convert_to_floating(expr->right);
+			break;
+	}
+}
+
 ParseResult parse_expr(Tokenizer* t) {
 	ParseResult res = _parse_expr(t, 0);
+	if (!res.success) return res;
 	Token eof = next_token(t);
 	if (eof.kind != EOFToken) {
-		if (res.success) free_expr(res.expr);
+		free_expr(res.expr);
 		return (ParseResult) {
 			.success = false,
 			.error = (ParseError) {
@@ -114,6 +146,11 @@ ParseResult parse_expr(Tokenizer* t) {
 			}
 		};
 	}
+
+	bool floating = has_floating(res.expr);
+	if (floating) convert_to_floating(res.expr);
+	res.value_kind = floating ? FloatingValue : IntegerValue;
+
 	return res;
 }
 

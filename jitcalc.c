@@ -105,19 +105,35 @@ int main(int argc, char** argv) {
 		Expression* expr = res.expr;
 		if (print_tree) print_expr(stdout, expr, 0);
 
-		if (do_eval) {
-			Assembly assembly = gen_code(expr);
-			if (!assembly.f) {
+		if (do_eval && res.value_kind == IntegerValue) {
+			AssemblyInt assembly = gen_code_int(expr);
+			if (!assembly.len) {
 				fprintf(stderr, "Codegen errors, exiting\n");
 				return 3;
 			}
 
-			s64 result = assembly.f();
+			s64 result = assembly.func();
 
 			printf("%ld\n", result);
 
-			free_assembly(assembly);
+			free_assembly_int(assembly);
+		} else if (do_eval && res.value_kind == FloatingValue) {
+			AssemblyFloat assembly = gen_code_float(expr);
+			if (!assembly.len) {
+				fprintf(stderr, "Codegen errors, exiting\n");
+				return 3;
+			}
+
+			double result = assembly.func();
+
+			printf("%lg\n", result);
+
+			free_assembly_float(assembly);
+		} else if (do_eval) {
+			// Unreachable code
+			exit(-1);
 		}
+
 		free_expr(expr);
 
 		ptr = 0;

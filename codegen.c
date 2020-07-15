@@ -20,11 +20,11 @@ unsigned char* code;
 	len++; \
 } while(0)
 
-bool add_expr(Expression* expr) {
+bool add_expr_int(Expression* expr) {
 	switch (expr->kind) {
 		case LiteralExpression:
 			switch (expr->token.kind) {
-				case NumberToken:
+				case LiteralToken:
 					add(MOV_RAX_CONST_1);
 					add(MOV_RAX_CONST_2);
 					byte* value = (byte*)&expr->token.integer;
@@ -45,7 +45,7 @@ bool add_expr(Expression* expr) {
 			}
 			break;
 		case UnaryExpression:
-			add_expr(expr->operand);
+			add_expr_int(expr->operand);
 			switch (expr->token.kind) {
 				case MinusToken:
 					add(NEG_RAX_1);
@@ -60,9 +60,9 @@ bool add_expr(Expression* expr) {
 			}
 			break;
 		case BinaryExpression:
-			if (!add_expr(expr->left)) return false;
+			if (!add_expr_int(expr->left)) return false;
 			add(PUSH_RAX);
-			if (!add_expr(expr->right)) return false;
+			if (!add_expr_int(expr->right)) return false;
 			add(MOV_RBX_RAX_1);
 			add(MOV_RBX_RAX_2);
 			add(MOV_RBX_RAX_3);
@@ -107,7 +107,121 @@ bool add_expr(Expression* expr) {
 	return true;
 }
 
-Assembly gen_code(Expression* expr) {
+bool add_expr_float(Expression* expr) {
+	switch (expr->kind) {
+		case LiteralExpression:
+			switch (expr->token.kind) {
+				case LiteralToken:
+					add(MOV_RAX_CONST_1);
+					add(MOV_RAX_CONST_2);
+					byte* value = (byte*)&expr->token.floating;
+					add(value[0]);
+					add(value[1]);
+					add(value[2]);
+					add(value[3]);
+					add(value[4]);
+					add(value[5]);
+					add(value[6]);
+					add(value[7]);
+					add(MOVQ_XMM0_RAX_1);
+					add(MOVQ_XMM0_RAX_2);
+					add(MOVQ_XMM0_RAX_3);
+					add(MOVQ_XMM0_RAX_4);
+					add(MOVQ_XMM0_RAX_5);
+					break;
+				default:
+					fprintf(stderr, "ERROR: Invalid literal expression type ");
+					print_token(stderr, expr->token);
+					fprintf(stderr, "\n");
+					return false;
+			}
+			break;
+		case UnaryExpression:
+			add_expr_float(expr->operand);
+			switch (expr->token.kind) {
+				case MinusToken:
+					add(MOVQ_XMM2_XMM0_1);
+					add(MOVQ_XMM2_XMM0_2);
+					add(MOVQ_XMM2_XMM0_3);
+					add(MOVQ_XMM2_XMM0_4);
+					add(XORPS_XMM0_XMM0_1);
+					add(XORPS_XMM0_XMM0_2);
+					add(XORPS_XMM0_XMM0_3);
+					add(SUBSD_XMM0_XMM2_1);
+					add(SUBSD_XMM0_XMM2_2);
+					add(SUBSD_XMM0_XMM2_3);
+					add(SUBSD_XMM0_XMM2_4);
+					break;
+				default:
+					fprintf(stderr, "ERROR: Invalid unary expression type ");
+					print_token(stderr, expr->token);
+					fprintf(stderr, "\n");
+					return false;
+			}
+			break;
+		case BinaryExpression:
+			if (!add_expr_float(expr->left)) return false;
+			add(MOVQ_RAX_XMM0_1);
+			add(MOVQ_RAX_XMM0_2);
+			add(MOVQ_RAX_XMM0_3);
+			add(MOVQ_RAX_XMM0_4);
+			add(MOVQ_RAX_XMM0_5);
+			add(PUSH_RAX);
+			if (!add_expr_float(expr->right)) return false;
+			add(MOVQ_XMM1_XMM0_1);
+			add(MOVQ_XMM1_XMM0_2);
+			add(MOVQ_XMM1_XMM0_3);
+			add(MOVQ_XMM1_XMM0_4);
+
+			add(POP_RAX);
+			add(MOVQ_XMM0_RAX_1);
+			add(MOVQ_XMM0_RAX_2);
+			add(MOVQ_XMM0_RAX_3);
+			add(MOVQ_XMM0_RAX_4);
+			add(MOVQ_XMM0_RAX_5);
+
+			switch (expr->token.kind) {
+				case PlusToken:
+					add(ADDSD_XMM0_XMM1_1);
+					add(ADDSD_XMM0_XMM1_2);
+					add(ADDSD_XMM0_XMM1_3);
+					add(ADDSD_XMM0_XMM1_4);
+					break;
+				case MinusToken:
+					add(SUBSD_XMM0_XMM1_1);
+					add(SUBSD_XMM0_XMM1_2);
+					add(SUBSD_XMM0_XMM1_3);
+					add(SUBSD_XMM0_XMM1_4);
+					break;
+				case AsteriskToken:
+					add(MULSD_XMM0_XMM1_1);
+					add(MULSD_XMM0_XMM1_2);
+					add(MULSD_XMM0_XMM1_3);
+					add(MULSD_XMM0_XMM1_4);
+					break;
+				case SlashToken:
+					add(DIVSD_XMM0_XMM1_1);
+					add(DIVSD_XMM0_XMM1_2);
+					add(DIVSD_XMM0_XMM1_3);
+					add(DIVSD_XMM0_XMM1_4);
+					break;
+				default:
+					fprintf(stderr, "ERROR: Invalid binary expression type ");
+					print_token(stderr, expr->token);
+					fprintf(stderr, "\n");
+					return false;
+			}
+			break;
+		default:
+			fprintf(stderr, "ERROR: Invalid expression\n");
+			return false;
+			break;
+	}
+
+	return true;
+}
+
+AssemblyInt gen_code_int(Expression* expr) {
 	len = 0;
 	cap = 8;
 	code = malloc(cap * sizeof *code);
@@ -117,12 +231,12 @@ Assembly gen_code(Expression* expr) {
 	add(MOV_RBP_RSP_2);
 	add(MOV_RBP_RSP_3);
 
-	if (!add_expr(expr)) return (Assembly) {};
+	if (!add_expr_int(expr)) return (AssemblyInt) { .len = 0 };
 
 	add(POP_RBP);
 	add(RET);
 
-	Function executable = mmap(
+	s64(*executable)(void) = mmap(
 		NULL, len * sizeof *code,
 		PROT_EXEC | PROT_WRITE | PROT_READ,
 		MAP_PRIVATE | MAP_ANONYMOUS,
@@ -133,12 +247,48 @@ Assembly gen_code(Expression* expr) {
 		((unsigned char*)executable)[i] = code[i];
 	}
 
-	return (Assembly) {
-		.f = executable,
+	return (AssemblyInt) {
+		.func = executable,
 		.len = len,
 	};
 }
 
-void free_assembly(Assembly assembly) {
-	munmap(assembly.f, assembly.len);
+AssemblyFloat gen_code_float(Expression* expr) {
+	len = 0;
+	cap = 8;
+	code = malloc(cap * sizeof *code);
+
+	add(PUSH_RBP);
+	add(MOV_RBP_RSP_1);
+	add(MOV_RBP_RSP_2);
+	add(MOV_RBP_RSP_3);
+
+	if (!add_expr_float(expr)) return (AssemblyFloat) { .len = 0 };
+
+	add(POP_RBP);
+	add(RET);
+
+	double(*executable)(void) = mmap(
+		NULL, len * sizeof *code,
+		PROT_EXEC | PROT_WRITE | PROT_READ,
+		MAP_PRIVATE | MAP_ANONYMOUS,
+		-1, 0
+	);
+
+	for (u64 i = 0; i < len; i++) {
+		((unsigned char*)executable)[i] = code[i];
+	}
+
+	return (AssemblyFloat) {
+		.func = executable,
+		.len = len,
+	};
+}
+
+void free_assembly_int(AssemblyInt assembly) {
+	munmap(assembly.func, assembly.len);
+}
+
+void free_assembly_float(AssemblyFloat assembly) {
+	munmap(assembly.func, assembly.len);
 }
