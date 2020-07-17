@@ -221,7 +221,7 @@ bool add_expr_float(Expression* expr) {
 	return true;
 }
 
-AssemblyInt gen_code_int(Expression* expr) {
+CodeInt gen_code_int(Expression* expr) {
 	len = 0;
 	cap = 8;
 	code = malloc(cap * sizeof *code);
@@ -231,7 +231,7 @@ AssemblyInt gen_code_int(Expression* expr) {
 	add(MOV_RBP_RSP_2);
 	add(MOV_RBP_RSP_3);
 
-	if (!add_expr_int(expr)) return (AssemblyInt) { .len = 0 };
+	if (!add_expr_int(expr)) return (CodeInt) { .len = 0 };
 
 	add(POP_RBP);
 	add(RET);
@@ -247,13 +247,13 @@ AssemblyInt gen_code_int(Expression* expr) {
 		((unsigned char*)executable)[i] = code[i];
 	}
 
-	return (AssemblyInt) {
+	return (CodeInt) {
 		.func = executable,
 		.len = len,
 	};
 }
 
-AssemblyFloat gen_code_float(Expression* expr) {
+CodeFloat gen_code_float(Expression* expr) {
 	len = 0;
 	cap = 8;
 	code = malloc(cap * sizeof *code);
@@ -263,7 +263,7 @@ AssemblyFloat gen_code_float(Expression* expr) {
 	add(MOV_RBP_RSP_2);
 	add(MOV_RBP_RSP_3);
 
-	if (!add_expr_float(expr)) return (AssemblyFloat) { .len = 0 };
+	if (!add_expr_float(expr)) return (CodeFloat) { .len = 0 };
 
 	add(POP_RBP);
 	add(RET);
@@ -279,16 +279,16 @@ AssemblyFloat gen_code_float(Expression* expr) {
 		((unsigned char*)executable)[i] = code[i];
 	}
 
-	return (AssemblyFloat) {
+	return (CodeFloat) {
 		.func = executable,
 		.len = len,
 	};
 }
 
-void free_assembly_int(AssemblyInt assembly) {
-	munmap(assembly.func, assembly.len);
+void free_code_int(CodeInt code) {
+	munmap(code.func, code.len);
 }
 
-void free_assembly_float(AssemblyFloat assembly) {
-	munmap(assembly.func, assembly.len);
+void free_code_float(CodeFloat code) {
+	munmap(code.func, code.len);
 }

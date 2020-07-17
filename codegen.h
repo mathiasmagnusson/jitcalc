@@ -1,20 +1,20 @@
 #include "expr.h"
 
-typedef struct AssemblyInt {
+typedef struct CodeInt {
 	s64 (*func)(void);
 	u64 len;
-} AssemblyInt;
+} CodeInt;
 
-typedef struct AssemblyFloat {
+typedef struct CodeFloat {
 	double (*func)(void);
 	u64 len;
-} AssemblyFloat;
+} CodeFloat;
 
-void free_assembly_int(AssemblyInt assembly);
-void free_assembly_float(AssemblyFloat assembly);
+void free_code_int(CodeInt code);
+void free_code_float(CodeFloat code);
 
-AssemblyInt gen_code_int(Expression* expr);
-AssemblyFloat gen_code_float(Expression* expr);
+CodeInt gen_code_int(Expression* expr);
+CodeFloat gen_code_float(Expression* expr);
 
 #define PUSH_RBP          0x55
 

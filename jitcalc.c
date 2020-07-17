@@ -116,29 +116,29 @@ int main(int argc, char** argv) {
 		if (print_tree) print_expr(stdout, expr, 0);
 
 		if (do_eval && res.value_kind == IntegerValue) {
-			AssemblyInt assembly = gen_code_int(expr);
-			if (!assembly.len) {
+			CodeInt code = gen_code_int(expr);
+			if (!code.len) {
 				fprintf(stderr, "Codegen errors, exiting\n");
 				return 3;
 			}
 
-			s64 result = assembly.func();
+			s64 result = code.func();
 
 			printf("%ld\n", result);
 
-			free_assembly_int(assembly);
+			free_code_int(code);
 		} else if (do_eval && res.value_kind == FloatingValue) {
-			AssemblyFloat assembly = gen_code_float(expr);
-			if (!assembly.len) {
+			CodeFloat code = gen_code_float(expr);
+			if (!code.len) {
 				fprintf(stderr, "Codegen errors, exiting\n");
 				return 3;
 			}
 
-			double result = assembly.func();
+			double result = code.func();
 
 			printf("%lg\n", result);
 
-			free_assembly_float(assembly);
+			free_code_float(code);
 		} else if (do_eval) {
 			// Unreachable code
 			exit(-1);
