@@ -63,33 +63,33 @@ bool add_expr_int(Expression* expr) {
 			if (!add_expr_int(expr->left)) return false;
 			add(PUSH_RAX);
 			if (!add_expr_int(expr->right)) return false;
-			add(MOV_RBX_RAX_1);
-			add(MOV_RBX_RAX_2);
-			add(MOV_RBX_RAX_3);
+			add(MOV_RCX_RAX_1);
+			add(MOV_RCX_RAX_2);
+			add(MOV_RCX_RAX_3);
 			add(POP_RAX);
 			switch (expr->token.kind) {
 				case PlusToken:
-					add(ADD_RAX_RBX_1);
-					add(ADD_RAX_RBX_2);
-					add(ADD_RAX_RBX_3);
+					add(ADD_RAX_RCX_1);
+					add(ADD_RAX_RCX_2);
+					add(ADD_RAX_RCX_3);
 					break;
 				case MinusToken:
-					add(SUB_RAX_RBX_1);
-					add(SUB_RAX_RBX_2);
-					add(SUB_RAX_RBX_3);
+					add(SUB_RAX_RCX_1);
+					add(SUB_RAX_RCX_2);
+					add(SUB_RAX_RCX_3);
 					break;
 				case AsteriskToken:
-					add(IMUL_RAX_RBX_1);
-					add(IMUL_RAX_RBX_2);
-					add(IMUL_RAX_RBX_3);
-					add(IMUL_RAX_RBX_4);
+					add(IMUL_RAX_RCX_1);
+					add(IMUL_RAX_RCX_2);
+					add(IMUL_RAX_RCX_3);
+					add(IMUL_RAX_RCX_4);
 					break;
 				case SlashToken:
 					add(CQO_1);
 					add(CQO_2);
-					add(IDIV_RBX_1);
-					add(IDIV_RBX_2);
-					add(IDIV_RBX_3);
+					add(IDIV_RCX_1);
+					add(IDIV_RCX_2);
+					add(IDIV_RCX_3);
 					break;
 				default:
 					fprintf(stderr, "ERROR: Invalid binary expression type ");

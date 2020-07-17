@@ -35,28 +35,26 @@ AssemblyFloat gen_code_float(Expression* expr);
 
 #define POP_RAX           0x58
 
-#define POP_RBX           0x5b
-
 #define NEG_RAX_1         0x48
 #define NEG_RAX_2         0xf7
 #define NEG_RAX_3         0xd8
 
-#define ADD_RAX_RBX_1     0x48
-#define ADD_RAX_RBX_2     0x01
-#define ADD_RAX_RBX_3     0xd8
+#define ADD_RAX_RCX_1     0x48
+#define ADD_RAX_RCX_2     0x01
+#define ADD_RAX_RCX_3     0xc8
 
-#define SUB_RAX_RBX_1     0x48
-#define SUB_RAX_RBX_2     0x29
-#define SUB_RAX_RBX_3     0xd8
+#define SUB_RAX_RCX_1     0x48
+#define SUB_RAX_RCX_2     0x29
+#define SUB_RAX_RCX_3     0xc8
 
-#define IMUL_RAX_RBX_1    0x48
-#define IMUL_RAX_RBX_2    0x0f
-#define IMUL_RAX_RBX_3    0xaf
-#define IMUL_RAX_RBX_4    0xc3
+#define IMUL_RAX_RCX_1    0x48
+#define IMUL_RAX_RCX_2    0x0f
+#define IMUL_RAX_RCX_3    0xaf
+#define IMUL_RAX_RCX_4    0xc1
 
-#define IDIV_RBX_1        0x48
-#define IDIV_RBX_2        0xf7
-#define IDIV_RBX_3        0xfb
+#define IDIV_RCX_1        0x48
+#define IDIV_RCX_2        0xf7
+#define IDIV_RCX_3        0xf9
 
 #define XOR_EDX_EDX_1     0x31
 #define XOR_EDX_EDX_2     0xd2
@@ -64,9 +62,9 @@ AssemblyFloat gen_code_float(Expression* expr);
 #define CQO_1             0x48
 #define CQO_2             0x99
 
-#define MOV_RBX_RAX_1     0x48
-#define MOV_RBX_RAX_2     0x89
-#define MOV_RBX_RAX_3     0xc3
+#define MOV_RCX_RAX_1     0x48
+#define MOV_RCX_RAX_2     0x89
+#define MOV_RCX_RAX_3     0xc1
 
 #define MOVQ_XMM0_RAX_1   0x66
 #define MOVQ_XMM0_RAX_2   0x48
