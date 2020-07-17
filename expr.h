@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "token.h"
 
 typedef enum ExpressionKind {
@@ -38,6 +36,6 @@ typedef struct ParseResult {
 	};
 } ParseResult;
 
-ParseResult parse_expr(Tokenizer* tokens);
+ParseResult parse_expr(Tokenizer* tokens, bool force_float);
 void print_expr(FILE* file, Expression* expr, u64 indent);
 void free_expr(Expression* expr);

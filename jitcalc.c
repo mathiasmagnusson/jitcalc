@@ -15,8 +15,9 @@ void arithmetic_error(int signal) {
 void usage(char* program_name) {
 	fprintf(stderr, "jitcalc - the JITting calculator\n\
 \n\
-Usage: %s [OPTIONS...]\n\
-Where OPTIONS is any of:\n\
+Usage: %s [FLAGS...]\n\
+Where FLAGS is any of:\n\
+    -float               force all calculations to be done as floats\n\
     -tokens              print all tokens read (implies -no-eval and not -tree)\n\
     -tree                print the expression in tree form\n\
     -no-eval             don't evaluate the expression\n\
@@ -38,8 +39,8 @@ Supported syntax:\n\
     - binary operators: + - * /\n\
 \n\
 All calculations are done as 64 bit signed integers unless at least one number\n\
-is a floating point value, in which case all calculations are done as 64 bit\n\
-(double precision) floating point numbers.\n\
+is a floating point value or the -float flag is provided, in which case all\n\
+calculations are done as 64 bit (double precision) floating point numbers.\n\
 \n\
 ", program_name);
 	exit(1);
@@ -50,11 +51,14 @@ int main(int argc, char** argv) {
 
 	signal(SIGFPE, arithmetic_error);
 
+	bool force_float = false;
 	bool print_tokens = false;
 	bool print_tree = false;
 	bool do_eval = true;
 	for (int i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-tokens") == 0)
+		if (strcmp(argv[i], "-float") == 0)
+			force_float = true;
+		else if (strcmp(argv[i], "-tokens") == 0)
 			print_tokens = true;
 		else if (strcmp(argv[i], "-tree") == 0)
 			print_tree = true;
@@ -83,7 +87,7 @@ int main(int argc, char** argv) {
 			continue;
 		}
 
-		ParseResult res = parse_expr(&tokenizer);
+		ParseResult res = parse_expr(&tokenizer, force_float);
 		if (!res.success) {
 			if (res.error.token.kind == EOFToken) {
 				ptr = strlen(line) - 1;

@@ -100,38 +100,31 @@ ParseResult _parse_expr(Tokenizer* t, u64 precedence_level) {
 	};
 }
 
-bool has_floating(Expression* expr) {
-	switch (expr->kind) {
-		case LiteralExpression: return expr->token.value_kind == FloatingValue;
-		case UnaryExpression:   return has_floating(expr->operand);
-		case BinaryExpression:  return has_floating(expr->left) ||
-		                               has_floating(expr->right);
-	}
-	// Unreachable code
-	exit(-1);
-}
-
-void convert_to_floating(Expression* expr) {
+bool homogenize_number_types(Expression* expr, bool force_float) {
 	switch (expr->kind) {
 		case LiteralExpression:
-			if (expr->token.value_kind == IntegerValue) {
+			if (force_float && expr->token.value_kind == IntegerValue) {
 				u64 value = expr->token.integer;
 				double float_value = (double) value;
 				expr->token.floating = float_value;
 				expr->token.value_kind = FloatingValue;
 			}
-			break;
+			return expr->token.value_kind == FloatingValue;
 		case UnaryExpression:
-			convert_to_floating(expr->operand);
-			break;
-		case BinaryExpression:
-			convert_to_floating(expr->left);
-			convert_to_floating(expr->right);
-			break;
+			return homogenize_number_types(expr->operand, force_float);
+		case BinaryExpression: {
+			bool left = homogenize_number_types(expr->left, force_float);
+			bool right = homogenize_number_types(expr->right, left);
+			if (right && !left)
+				homogenize_number_types(expr->left, true);
+			return left || right;
+		}
 	}
+	// Unreachable code
+	exit(-1);
 }
 
-ParseResult parse_expr(Tokenizer* t) {
+ParseResult parse_expr(Tokenizer* t, bool force_float) {
 	ParseResult res = _parse_expr(t, 0);
 	if (!res.success) return res;
 	Token eof = next_token(t);
@@ -147,8 +140,7 @@ ParseResult parse_expr(Tokenizer* t) {
 		};
 	}
 
-	bool floating = has_floating(res.expr);
-	if (floating) convert_to_floating(res.expr);
+	bool floating = homogenize_number_types(res.expr, force_float);
 	res.value_kind = floating ? FloatingValue : IntegerValue;
 
 	return res;
