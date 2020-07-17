@@ -1,8 +1,8 @@
 # jitcalc - the JITting calculator
 
-A signed 64-bit integer calculator written in C which produces x86_64
-machine code and evaluates it.
+A calculator written in C which produces x86_64 machine code from mathematical
+expressions and executes them.
 
-It would probably be faster to just parse expressions into a tree and
-evaluate it by walking the tree, but I believe like that's been done
-enough times already, right?
+I admit it would probably be faster to just parse expressions into a tree and
+evaluate them by walking the tree, but I bet that's been done quite a few times
+already.
